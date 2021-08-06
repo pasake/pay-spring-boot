@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 /**
  * 资源工厂注解
- * @Auther: yangyuan
+ * @author yangyuan
  * @Date: 2019/2/14 17:52
  */
 @Target({ElementType.TYPE})

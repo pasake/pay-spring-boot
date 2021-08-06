@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 /**
  * 支付宝公共方法封装
+ *
  * @Auther: yangyuan
  * @Date: 2019/1/11 15:02
  */
@@ -36,11 +37,17 @@ public abstract class AbstractAli {
     private static final Pattern JSON_STRING_PATTERN = Pattern.compile("\"([^\"]|(?<=\\\\)\")+\"");
 
     public AbstractAli() {
-        try{
+        try {
             /*
                 创建商户私钥
              */
-            PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(PayBase64.decode(AliPayConfig.getPrivateKey()));
+            byte[] decode = PayBase64.decode(AliPayConfig.getPrivateKey());
+            if (Objects.isNull(decode)) {
+                PRIVATE_KEY = null;
+                ALI_PUBLIC_KEY = null;
+                return;
+            }
+            PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(decode);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             PRIVATE_KEY = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
 
@@ -49,37 +56,38 @@ public abstract class AbstractAli {
              */
             X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(PayBase64.decode(AliPayConfig.getAliPublicKey()));
             ALI_PUBLIC_KEY = keyFactory.generatePublic(x509EncodedKeySpec);
-        }catch(Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("创建RSA密钥异常", e);
         }
     }
 
     /**
      * 根据订单信息构造支付参数
+     *
      * @param aliTrade
      * @return
      */
-    protected Map<String, String> buildCommonParams(AliTrade aliTrade){
+    protected Map<String, String> buildCommonParams(AliTrade aliTrade) {
         Map<String, String> params = new HashMap<String, String>();
-        if(StringUtils.isNotBlank(aliTrade.getAppId())){
+        if (StringUtils.isNotBlank(aliTrade.getAppId())) {
             params.put("app_id", aliTrade.getAppId());
         }
-        if(StringUtils.isNotBlank(aliTrade.getMethod())){
+        if (StringUtils.isNotBlank(aliTrade.getMethod())) {
             params.put("method", aliTrade.getMethod());
         }
-        if(StringUtils.isNotBlank(aliTrade.getFormat())){
+        if (StringUtils.isNotBlank(aliTrade.getFormat())) {
             params.put("format", aliTrade.getFormat());
         }
-        if(StringUtils.isNotBlank(aliTrade.getCharset())){
+        if (StringUtils.isNotBlank(aliTrade.getCharset())) {
             params.put("charset", aliTrade.getCharset());
         }
-        if(StringUtils.isNotBlank(aliTrade.getVersion())){
+        if (StringUtils.isNotBlank(aliTrade.getVersion())) {
             params.put("version", aliTrade.getVersion());
         }
-        if(StringUtils.isNotBlank(aliTrade.getNotifyUrl())){
+        if (StringUtils.isNotBlank(aliTrade.getNotifyUrl())) {
             params.put("notify_url", aliTrade.getNotifyUrl());
         }
-        if(StringUtils.isNotBlank(aliTrade.getReturnUrl())){
+        if (StringUtils.isNotBlank(aliTrade.getReturnUrl())) {
             params.put("return_url", aliTrade.getReturnUrl());
         }
 
@@ -88,24 +96,25 @@ public abstract class AbstractAli {
 
     /**
      * 根据订单信息构造转账参数
+     *
      * @param transferTrade
      * @return
      */
-    protected Map<String, String> buildCommonParams(AliTransferTrade transferTrade){
+    protected Map<String, String> buildCommonParams(AliTransferTrade transferTrade) {
         Map<String, String> params = new HashMap<String, String>();
-        if(StringUtils.isNotBlank(transferTrade.getAppid())){
+        if (StringUtils.isNotBlank(transferTrade.getAppid())) {
             params.put("app_id", transferTrade.getAppid());
         }
-        if(StringUtils.isNotBlank(transferTrade.getMethod())){
+        if (StringUtils.isNotBlank(transferTrade.getMethod())) {
             params.put("method", transferTrade.getMethod());
         }
-        if(StringUtils.isNotBlank(transferTrade.getFormat())){
+        if (StringUtils.isNotBlank(transferTrade.getFormat())) {
             params.put("format", transferTrade.getFormat());
         }
-        if(StringUtils.isNotBlank(transferTrade.getCharset())){
+        if (StringUtils.isNotBlank(transferTrade.getCharset())) {
             params.put("charset", transferTrade.getCharset());
         }
-        if(StringUtils.isNotBlank(transferTrade.getVersion())){
+        if (StringUtils.isNotBlank(transferTrade.getVersion())) {
             params.put("version", transferTrade.getVersion());
         }
 
@@ -114,13 +123,14 @@ public abstract class AbstractAli {
 
     /**
      * 发起支付请求
+     *
      * @param aliTrade
      */
-    protected JSONObject request(AliTrade aliTrade, AliPayBizOptions aliPayBizOptions){
+    protected JSONObject request(AliTrade aliTrade, AliPayBizOptions aliPayBizOptions) {
          /*
             公共参数
          */
-        Map<String,String> params = buildCommonParams(aliTrade);
+        Map<String, String> params = buildCommonParams(aliTrade);
 
         /*
             业务参数
@@ -133,13 +143,14 @@ public abstract class AbstractAli {
 
     /**
      * 发起转账请求
+     *
      * @param transferTrade
      */
-    protected JSONObject request(AliTransferTrade transferTrade, AliTransferBizOptions aliTransferBizOptions){
+    protected JSONObject request(AliTransferTrade transferTrade, AliTransferBizOptions aliTransferBizOptions) {
          /*
             公共参数
          */
-        Map<String,String> params = buildCommonParams(transferTrade);
+        Map<String, String> params = buildCommonParams(transferTrade);
 
         /*
             业务参数
@@ -152,13 +163,14 @@ public abstract class AbstractAli {
 
     /**
      * 获取支付凭证
+     *
      * @param aliTrade
      */
-    protected String token(AliTrade aliTrade, AliPayBizOptions aliPayBizOptions){
+    protected String token(AliTrade aliTrade, AliPayBizOptions aliPayBizOptions) {
          /*
             公共参数
          */
-        Map<String,String> params = buildCommonParams(aliTrade);
+        Map<String, String> params = buildCommonParams(aliTrade);
 
         /*
             业务参数
@@ -176,13 +188,14 @@ public abstract class AbstractAli {
 
     /**
      * 获取支付链接
+     *
      * @param aliTrade
      */
-    protected String link(AliTrade aliTrade, AliPayBizOptions aliPayBizOptions){
+    protected String link(AliTrade aliTrade, AliPayBizOptions aliPayBizOptions) {
          /*
             公共参数
          */
-        Map<String,String> params = buildCommonParams(aliTrade);
+        Map<String, String> params = buildCommonParams(aliTrade);
 
         /*
             业务参数
@@ -200,9 +213,10 @@ public abstract class AbstractAli {
 
     /**
      * 参数集合签名
+     *
      * @param params
      */
-    private void signParams(Map<String ,String> params){
+    private void signParams(Map<String, String> params) {
         /*
             补充公共参数
          */
@@ -217,11 +231,12 @@ public abstract class AbstractAli {
 
     /**
      * 统一请求
+     *
      * @param params
      * @param aliBizOptions
      * @return 业务数据
      */
-    private JSONObject request(Map<String ,String> params, AliBizOptions aliBizOptions){
+    private JSONObject request(Map<String, String> params, AliBizOptions aliBizOptions) {
         /*
             签名
          */
@@ -235,11 +250,11 @@ public abstract class AbstractAli {
         /*
             通信状态
          */
-        if(response.getCode() != 200){
+        if (response.getCode() != 200) {
             throw new RuntimeException("[支付宝统一请求]通信失败。响应：\n" + response.getStringBody());
         }
         String body = response.getStringBody();
-        if(StringUtils.isBlank(body)){
+        if (StringUtils.isBlank(body)) {
             throw new RuntimeException("[支付宝统一请求]通信失败。没有接收到任何响应数据。");
         }
 
@@ -252,9 +267,9 @@ public abstract class AbstractAli {
         } catch (Exception e) {
             throw new RuntimeException("[支付宝统一请求]解析响应数据(JSON)失败。");
         }
-        String sign =  json.getString("sign");
+        String sign = json.getString("sign");
         String content = extractSignData(body, aliBizOptions.responseBizPropName());
-        if(!verifyRSA2Sign(content,sign)){
+        if (!verifyRSA2Sign(content, sign)) {
             throw new RuntimeException("[支付宝统一请求]支付宝签名验证失败。");
         }
 
@@ -263,30 +278,32 @@ public abstract class AbstractAli {
 
     /**
      * 请求是否成功
+     *
      * @param response
      * @return
      */
-    protected boolean requestSuccess(JSONObject response){
+    protected boolean requestSuccess(JSONObject response) {
         return "10000".equals(response.getString("code"));
     }
 
     /**
      * 以字符串处理的形式提取待签名数据
+     *
      * @param data 支付宝响应完整数据
-     * @param key 属性名称
+     * @param key  属性名称
      * @return 待签名数据
      */
-    protected String extractSignData(String data, String key){
+    protected String extractSignData(String data, String key) {
         StringBuilder builder = new StringBuilder(data);
 
         Matcher matcher = JSON_STRING_PATTERN.matcher(data);
         int start;
         int end;
-        while(matcher.find()){
+        while (matcher.find()) {
             start = matcher.start();
             end = matcher.end();
 
-            if(key.equals(matcher.group(0))){
+            if (key.equals(matcher.group(0))) {
                 continue;
             }
 
@@ -303,6 +320,7 @@ public abstract class AbstractAli {
 
     /**
      * RSA2签名
+     *
      * @param content 待签名字符串
      * @return 签名
      */
@@ -321,23 +339,24 @@ public abstract class AbstractAli {
 
     /**
      * RSA2签名
+     *
      * @param params 待签名参数集合
      * @return 签名
      */
-    protected String signRSA2(Map<String,String> params){
+    protected String signRSA2(Map<String, String> params) {
         try {
             List<String> pairs = new ArrayList<String>();
-            for(Map.Entry<String, String> entry : params.entrySet()){
-                if(StringUtils.isBlank(entry.getValue())){
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                if (StringUtils.isBlank(entry.getValue())) {
                     continue;
                 }
                 pairs.add(entry.getKey() + "=" + entry.getValue());
             }
             Collections.sort(pairs, String.CASE_INSENSITIVE_ORDER);
             StringBuilder builder = new StringBuilder();
-            for(int i = 0; i < pairs.size(); i++) {
+            for (int i = 0; i < pairs.size(); i++) {
                 builder.append(pairs.get(i));
-                if(i + 1 < pairs.size()){
+                if (i + 1 < pairs.size()) {
                     builder.append("&");
                 }
             }
@@ -350,11 +369,12 @@ public abstract class AbstractAli {
 
     /**
      * RSA2签名验证
+     *
      * @param content 原始内容
-     * @param sign 签名
+     * @param sign    签名
      * @return
      */
-    protected boolean verifyRSA2Sign(String content, String sign){
+    protected boolean verifyRSA2Sign(String content, String sign) {
         try {
             Signature signature = Signature.getInstance("SHA256withRSA");
             signature.initVerify(ALI_PUBLIC_KEY);
